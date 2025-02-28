@@ -7,6 +7,7 @@ TOKEN = os.environ.get("GROQ_API_TOKEN")
 TEMPERATURE = 0
 MAX_COMPLETION_TOKENS = 512
 
+
 def ask_llm(question: str) -> str:
     client = Groq(
         api_key=TOKEN,
@@ -30,5 +31,5 @@ def ask_llm(question: str) -> str:
     return chat_completion.choices[0].message.content
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     print(ask_llm("Welche Leistung erhalte ich in meinem Tarif 'RisikofreiLeben'?"))
