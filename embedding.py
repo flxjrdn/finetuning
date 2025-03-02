@@ -16,11 +16,12 @@ class Embedder:
         )
         self.embeddings: List[Tensor] = []
 
-    def embed_chunks(self, chunks: List[Document]) -> None:
+    def embed_chunks(self, chunks: List[Document]) -> List[Tensor]:
         self.embeddings = [
             self.embed(chunk.page_content)
             for chunk in chunks
         ]
+        return self.embeddings
 
     def embed(self, text: str) -> Tensor:
         return self.embedding_model.encode(text, convert_to_numpy=False)

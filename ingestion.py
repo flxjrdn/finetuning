@@ -1,5 +1,6 @@
 from chunking import Chunker
 from embedding import Embedder
+from vector_store import VectorStore
 
 
 class Ingestor:
@@ -9,11 +10,16 @@ class Ingestor:
             "signal-iduna.de"
         )
         self.embedder = Embedder()
+        self.vector_store = VectorStore()
 
     def perform_ingestion(self):
         print("started ingestion...")
-        self.chunker.create_chunks()
-        self.embedder.embed_chunks(self.chunker.chunks)
+        chunks = self.chunker.create_chunks()
+        embeddings = self.embedder.embed_chunks(chunks)
+        self.vector_store.recreate_collection(
+            chunks=chunks,
+            embedded_chunks=embeddings,
+        )
 
 
 if __name__ == "__main__":

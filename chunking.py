@@ -3,6 +3,7 @@ from typing import List
 
 from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_core.documents import Document
 
 CHUNK_SIZE = 500
 CHUNK_OVERLAP = 100
@@ -11,19 +12,20 @@ CHUNK_OVERLAP = 100
 class Chunker:
     def __init__(self, directory_pdfs: str) -> None:
         self.directory_pdfs = directory_pdfs
-        self.chunks = []
+        self.chunks: List[Document] = []
         self.text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=CHUNK_SIZE,
             chunk_overlap=CHUNK_OVERLAP,
         )
 
-    def create_chunks(self):
+    def create_chunks(self) -> List[Document]:
         print(f"creating chunks for docs in {self.directory_pdfs}")
         for path_pdf in self._get_path_pdfs()[
             :3
         ]:  # TODO for testing purposes use only few files
             self._create_chunks_for_pdf(path_pdf)
         print(f"created {len(self.chunks)} chunks")
+        return self.chunks
 
     def _get_path_pdfs(self) -> List[str]:
         """
