@@ -16,6 +16,14 @@ class VectorStore:
             name=NAME_COLLECTION
         )
 
+    def query(self, query_embedding: Tensor, n_chunks: int) -> List[str]:
+        results = self.collection.query(
+            query_embeddings=query_embedding.tolist(),
+            n_results=n_chunks,
+        )
+        retrieved_texts = [result["text"] for result in results["metadatas"][0]]
+        return retrieved_texts
+
     def empty_out_collection(self):
         if self.collection.count() == 0:
             return
