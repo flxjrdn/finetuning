@@ -17,10 +17,7 @@ class Embedder:
         self.embeddings: List[Tensor] = []
 
     def embed_chunks(self, chunks: List[Document]) -> List[Tensor]:
-        self.embeddings = [
-            self.embed(chunk.page_content)
-            for chunk in chunks
-        ]
+        self.embeddings = [self.embed(chunk.page_content) for chunk in chunks]
         return self.embeddings
 
     def embed(self, text: str) -> Tensor:
@@ -35,14 +32,15 @@ if __name__ == "__main__":
         "Wie viel Taschengeld bekomme ich?",
         "Wie heißt Du?",
     ]
-    embedded_texts = [
-        embedder.embed(text) for text in texts
-    ]
+    embedded_texts = [embedder.embed(text) for text in texts]
     similarities = {
-        texts[i]: [embedder.embedding_model.similarity(
-            embedded_texts[i],
-            embedded_texts[j],
-        ) for j in range(len(texts))]
+        texts[i]: [
+            embedder.embedding_model.similarity(
+                embedded_texts[i],
+                embedded_texts[j],
+            )
+            for j in range(len(texts))
+        ]
         for i in range(len(texts))
     }
     print(similarities)
