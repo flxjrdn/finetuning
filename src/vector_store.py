@@ -4,7 +4,7 @@ import chromadb
 from langchain_core.documents import Document
 from torch import Tensor
 
-PATH_CHROMA_DB = "./chroma_db"
+PATH_CHROMA_DB = "../chroma_db"
 NAME_COLLECTION = "pdf_docs"
 
 

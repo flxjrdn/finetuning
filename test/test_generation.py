@@ -1,6 +1,6 @@
 import unittest
 
-from generation import AnswerGenerator, PROMPT
+from src.generation import AnswerGenerator, PROMPT
 
 
 class MyTestCase(unittest.TestCase):
