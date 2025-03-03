@@ -6,8 +6,7 @@ from src.generation import AnswerGenerator, PROMPT
 class MyTestCase(unittest.TestCase):
     def test_create_prompt(self):
         prompt = AnswerGenerator.create_prompt(
-            question="test question",
-            chunks=["chunk 1", "chunk 2"]
+            question="test question", chunks=["chunk 1", "chunk 2"]
         )
         self.assertTrue("test question" in prompt)
         self.assertTrue("chunk 1\nchunk 2" in prompt)
@@ -15,5 +14,5 @@ class MyTestCase(unittest.TestCase):
         self.assertFalse("PLACEHOLDER" in prompt)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
