@@ -1,6 +1,6 @@
-from chunking import Chunker
-from embedding import Embedder
-from vector_store import VectorStore
+from src.chunking import Chunker
+from src.embedding import Embedder
+from src.vector_store import VectorStore
 
 
 class Ingestor:

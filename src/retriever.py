@@ -1,7 +1,7 @@
 from typing import List
 
-from embedding import Embedder
-from vector_store import VectorStore
+from src.embedding import Embedder
+from src.vector_store import VectorStore
 
 
 N_CHUNKS = 3

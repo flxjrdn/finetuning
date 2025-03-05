@@ -1,3 +1,4 @@
+import os
 from typing import List
 
 from langchain_core.documents import Document
@@ -10,6 +11,9 @@ EMBEDDING_MODEL = "jinaai/jina-embeddings-v2-base-de"
 class Embedder:
     def __init__(self):
         print(f"loading embedding model {EMBEDDING_MODEL}")
+        os.environ[
+            "TOKENIZERS_PARALLELISM"
+        ] = "false"  # disable parallelism to avoid deadlocks
         self.embedding_model = SentenceTransformer(
             EMBEDDING_MODEL,
             trust_remote_code=True,
