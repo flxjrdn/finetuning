@@ -1,50 +1,42 @@
+import json
 import os
-from typing import List
+from typing import List, Dict
 
-from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
 
 CHUNK_SIZE = 500
 CHUNK_OVERLAP = 100
 
+FILENAME_CHUNKED_DOCS = "chunked_documents.json"
+
 
 class Chunker:
-    def __init__(self, directory_pdfs: str) -> None:
-        self.directory_pdfs = directory_pdfs
+    def __init__(self, path_doc_corpus_json: str) -> None:
+        self.path_doc_corpus_json = path_doc_corpus_json
         self.chunks: List[Document] = []
         self.text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=CHUNK_SIZE,
             chunk_overlap=CHUNK_OVERLAP,
         )
 
-    def create_chunks(self) -> List[Document]:
-        print(f"creating chunks for docs in {self.directory_pdfs}")
-        for path_pdf in self._get_path_pdfs()[
-            :3
-        ]:  # TODO for testing purposes use only few files
-            self._create_chunks_for_pdf(path_pdf)
-        print(f"created {len(self.chunks)} chunks")
-        return self.chunks
+    def create_chunks(self) -> None:
+        print(f"creating chunks for docs in {self.path_doc_corpus_json}")
+        chunked_docs = []
+        for doc_id, text in self._load_corpus().items():
+            chunks = self.text_splitter.split_text(text)
+            for i, chunk in enumerate(chunks):
+                chunked_docs.append({"doc_id": doc_id, "chunk_id": i, "text": chunk})
+        with open(FILENAME_CHUNKED_DOCS, "w", encoding="utf-8") as f:
+            json.dump(chunked_docs, f, indent=4, ensure_ascii=False)
+        print(f"written {len(chunked_docs)} chunks to {FILENAME_CHUNKED_DOCS}")
 
-    def _get_path_pdfs(self) -> List[str]:
-        """
-        Returns a list of full paths to all PDF files in the specified directory.
 
-        :return: List of PDF file paths.
-        """
-        if not os.path.isdir(self.directory_pdfs):
-            raise ValueError(f"Invalid directory: {self.directory_pdfs}")
+    def _load_corpus(self) -> Dict[str, str]:
+        """Load the document corpus from a JSON file (assumed format: {'doc_id': 'text'})."""
+        with open(self.path_doc_corpus_json, "r") as f:
+            return json.load(f)
 
-        return [
-            os.path.join(self.directory_pdfs, file)
-            for file in os.listdir(self.directory_pdfs)
-            if file.lower().endswith(".pdf")
-        ]
-
-    def _create_chunks_for_pdf(self, path_pdf: str):
-        print(f"chunking {os.path.basename(path_pdf)}")
-        loader = PyPDFLoader(path_pdf)
-        pdf_doc = loader.load()
-        chunks_pdf = self.text_splitter.split_documents(pdf_doc)
-        self.chunks.extend(chunks_pdf)
+if __name__ == "__main__":
+    c = Chunker("documents.json")
+    c.create_chunks()
