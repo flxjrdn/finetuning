@@ -8,7 +8,7 @@ from langchain_core.documents import Document
 CHUNK_SIZE = 500
 CHUNK_OVERLAP = 100
 
-FILENAME_CHUNKED_DOCS = "chunked_documents.json"
+CHUNKS_JSON = "chunked_documents.json"
 
 
 class Chunker:
@@ -27,9 +27,9 @@ class Chunker:
             chunks = self.text_splitter.split_text(text)
             for i, chunk in enumerate(chunks):
                 chunked_docs.append({"doc_id": doc_id, "chunk_id": i, "text": chunk})
-        with open(FILENAME_CHUNKED_DOCS, "w", encoding="utf-8") as f:
+        with open(CHUNKS_JSON, "w", encoding="utf-8") as f:
             json.dump(chunked_docs, f, indent=4, ensure_ascii=False)
-        print(f"written {len(chunked_docs)} chunks to {FILENAME_CHUNKED_DOCS}")
+        print(f"written {len(chunked_docs)} chunks to {CHUNKS_JSON}")
 
 
     def _load_corpus(self) -> Dict[str, str]:

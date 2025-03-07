@@ -4,7 +4,7 @@ from typing import List
 
 from langchain_community.document_loaders import PyPDFLoader
 
-OUTPUT_JSON = "documents.json"
+DOCUMENTS_JSON = "documents.json"
 
 
 class PdfReader:
@@ -18,7 +18,7 @@ class PdfReader:
             pdf_doc = loader.load()[0]
             doc_id = os.path.splitext(os.path.basename(path_pdf))[0]
             docs[doc_id] = pdf_doc.page_content
-        with open(OUTPUT_JSON, "w", encoding="utf-8") as f:
+        with open(DOCUMENTS_JSON, "w", encoding="utf-8") as f:
             json.dump(docs, f, indent=4, ensure_ascii=False)
 
     def _get_path_pdfs(self) -> List[str]:

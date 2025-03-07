@@ -1,7 +1,7 @@
+import json
 import os
-from typing import List
+from typing import List, Dict
 
-from langchain_core.documents import Document
 from sentence_transformers import SentenceTransformer
 from torch import Tensor
 
@@ -20,12 +20,18 @@ class Embedder:
         )
         self.embeddings: List[Tensor] = []
 
-    def embed_chunks(self, chunks: List[Document]) -> List[Tensor]:
-        self.embeddings = [self.embed(chunk.page_content) for chunk in chunks]
+    def embed_chunks(self, path_chunks_json: str) -> List[Tensor]:
+        chunks = self._load_chunks(path_chunks_json)
+        self.embeddings = [self.embed(chunk["text"]) for chunk in chunks]
         return self.embeddings
 
     def embed(self, text: str) -> Tensor:
         return self.embedding_model.encode(text, convert_to_numpy=False)
+
+    @staticmethod
+    def _load_chunks(path_chunks_json) -> List[Dict[str, str]]:
+        with open(path_chunks_json, "r") as f:
+            return json.load(f)
 
 
 if __name__ == "__main__":
