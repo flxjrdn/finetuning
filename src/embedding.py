@@ -20,10 +20,12 @@ class Embedder:
         )
         self.embeddings: List[Tensor] = []
 
-    def embed_chunks(self, path_chunks_json: str) -> List[Tensor]:
-        chunks = self._load_chunks(path_chunks_json)
-        self.embeddings = [self.embed(chunk["text"]) for chunk in chunks]
-        return self.embeddings
+    def embed_chunks(self, path_chunks_json: str):
+        chunks_dict = self._load_chunks(path_chunks_json)
+        chunks = [chunk["text"] for chunk in chunks_dict]
+        chunks = [chunk for chunk in chunks if chunks is not None and len(chunk) > 0]
+        self.embeddings = [self.embed(chunk) for chunk in chunks]
+        print(f"created embeddings for {len(self.embeddings)} chunks")
 
     def embed(self, text: str) -> Tensor:
         return self.embedding_model.encode(text, convert_to_numpy=False)

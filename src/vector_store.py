@@ -1,7 +1,6 @@
-from typing import List
+from typing import List, Dict
 
 import chromadb
-from langchain_core.documents import Document
 from torch import Tensor
 
 PATH_CHROMA_DB = "../chroma_db"
@@ -36,7 +35,7 @@ class VectorStore:
 
     def recreate_collection(
         self,
-        chunks: List[Document],
+        chunks: List[Dict[str, str | int]],
         embedded_chunks: List[Tensor],
     ):
         self.empty_out_collection()
@@ -44,7 +43,7 @@ class VectorStore:
             self.collection.add(
                 ids=[str(i)],
                 embeddings=[embedded_chunks[i].tolist()],
-                metadatas=[{"text": chunk.page_content}],
+                metadatas=[{"text": chunk["text"]}],
             )
 
 

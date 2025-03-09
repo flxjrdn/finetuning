@@ -13,13 +13,17 @@ class PdfReader:
 
     def create_doc_corpus_json_file(self):
         docs = {}
-        for path_pdf in self._get_path_pdfs()[:3]:  # TODO for testing purposes use only few files
+        for path_pdf in self._get_path_pdfs()[
+            :3
+        ]:  # TODO for testing purposes use only few files
+            print(f"reading {os.path.basename(path_pdf)}")
             loader = PyPDFLoader(path_pdf)
             pdf_doc = loader.load()[0]
             doc_id = os.path.splitext(os.path.basename(path_pdf))[0]
             docs[doc_id] = pdf_doc.page_content
         with open(DOCUMENTS_JSON, "w", encoding="utf-8") as f:
             json.dump(docs, f, indent=4, ensure_ascii=False)
+        print(f"written {len(docs)} to {DOCUMENTS_JSON}")
 
     def _get_path_pdfs(self) -> List[str]:
         """
