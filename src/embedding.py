@@ -1,6 +1,5 @@
-import json
 import os
-from typing import List, Dict
+from typing import List
 
 from sentence_transformers import SentenceTransformer
 from torch import Tensor

@@ -26,7 +26,6 @@ class Finetuner:
     def finetune(self):
         queries = [self.generate_query(chunk) for chunk in self.chunks]
 
-
     def generate_query(self, text):
         prompt = f"Generate a natural language search query a user might use to find this text:\n{text}\n\nQuery:"
         chat_completion = self.client.chat.completions.create(
@@ -42,4 +41,3 @@ class Finetuner:
         )
 
         return chat_completion.choices[0].message.content
-
