@@ -5,6 +5,8 @@ from typing import List, Dict
 from sentence_transformers import SentenceTransformer
 from torch import Tensor
 
+from src import utils
+
 EMBEDDING_MODEL = "jinaai/jina-embeddings-v2-base-de"
 
 
@@ -21,19 +23,12 @@ class Embedder:
         self.embeddings: List[Tensor] = []
 
     def embed_chunks(self, path_chunks_json: str):
-        chunks_dict = self._load_chunks(path_chunks_json)
-        chunks = [chunk["text"] for chunk in chunks_dict]
-        chunks = [chunk for chunk in chunks if chunks is not None and len(chunk) > 0]
+        chunks = utils.load_chunks(path_chunks_json)
         self.embeddings = [self.embed(chunk) for chunk in chunks]
         print(f"created embeddings for {len(self.embeddings)} chunks")
 
     def embed(self, text: str) -> Tensor:
         return self.embedding_model.encode(text, convert_to_numpy=False)
-
-    @staticmethod
-    def _load_chunks(path_chunks_json) -> List[Dict[str, str]]:
-        with open(path_chunks_json, "r") as f:
-            return json.load(f)
 
 
 if __name__ == "__main__":
