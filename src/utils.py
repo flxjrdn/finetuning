@@ -15,4 +15,8 @@ def load_chunks(path_chunks_json) -> List[str]:
     with open(path_chunks_json, "r") as f:
         chunks_dict = json.load(f)
     chunks = [chunk["text"] for chunk in chunks_dict]
-    return [chunk for chunk in chunks if chunks is not None and len(chunk) >= MIN_CHUNK_CHARACTER_LENGTH]
+    return [
+        chunk
+        for chunk in chunks
+        if chunks is not None and len(chunk) >= MIN_CHUNK_CHARACTER_LENGTH
+    ]
