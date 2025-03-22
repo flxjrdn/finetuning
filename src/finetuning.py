@@ -57,7 +57,7 @@ class Finetuner:
 
         return chat_completion.choices[0].message.content
 
-    def _generate_query_for_each_chunks(self):
+    def _generate_query_for_each_chunk(self):
         print(f"generating queries for {len(self.chunks)} chunks")
         self.queries = [self._generate_query(chunk) for chunk in self.chunks]
 
@@ -71,7 +71,7 @@ class Finetuner:
 
             # Pick least similar chunk as negative
             negative_idx = scores.argsort()[0].item()
-            self.negative[i] = self.chunks[negative_idx]
+            self.negative.append(self.chunks[negative_idx])
 
     def _create_triplets_for_finetuning(self):
         if os.path.exists(self._get_path_triplets_json()):
@@ -79,6 +79,9 @@ class Finetuner:
             return
 
         print("creating triplets of query, positive and negative examples")
+        self._generate_query_for_each_chunk()
+        self._find_least_matching_chunk_for_each_query()
+
         for i, query in enumerate(self.queries):
             anchor = query
             positive = self.chunks[i]
@@ -111,7 +114,7 @@ class Finetuner:
         print(
             f"loading previously created triplets from {self._get_path_triplets_json()}"
         )
-        with open("self._get_path_triplets_json()", "r", encoding="utf-8") as f:
+        with open(self._get_path_triplets_json(), "r", encoding="utf-8") as f:
             triplet_list = json.load(f)
         self.triplets = [tuple(triplet) for triplet in triplet_list]
 
