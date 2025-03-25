@@ -13,9 +13,7 @@ class PdfReader:
 
     def create_doc_corpus_json_file(self):
         docs = {}
-        for path_pdf in self._get_path_pdfs()[
-            :3
-        ]:  # TODO for testing purposes use only few files
+        for path_pdf in self._get_path_pdfs():
             print(f"reading {os.path.basename(path_pdf)}")
             loader = PyPDFLoader(path_pdf)
             pdf_doc = loader.load()[0]

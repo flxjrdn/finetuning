@@ -7,6 +7,7 @@ CHUNK_SIZE = 500
 CHUNK_OVERLAP = 100
 
 CHUNKS_JSON = "chunked_documents.json"
+MIN_CHUNK_CHARACTER_LENGTH = 50
 
 
 class Chunker:
@@ -24,6 +25,10 @@ class Chunker:
             chunks_for_single_doc = self.text_splitter.split_text(text)
             for i, chunk in enumerate(chunks_for_single_doc):
                 self.chunks.append({"doc_id": doc_id, "chunk_id": i, "text": chunk})
+        self.chunks = [
+            chunk for chunk in self.chunks
+            if (chunk["text"] is not None) and (len(chunk["text"]) >= MIN_CHUNK_CHARACTER_LENGTH)
+        ]
         with open(CHUNKS_JSON, "w", encoding="utf-8") as f:
             json.dump(self.chunks, f, indent=4, ensure_ascii=False)
         print(f"written {len(self.chunks)} chunks to {CHUNKS_JSON}")

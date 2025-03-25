@@ -19,7 +19,7 @@ class Ingestor:
 
     def perform_ingestion(self):
         print("started ingestion...")
-        self.pdf_reader.create_doc_corpus_json_file()
+        # self.pdf_reader.create_doc_corpus_json_file()
         self.chunker.create_chunks()
         self.embedder.embed_chunks(CHUNKS_JSON)
         self.vector_store.recreate_collection(

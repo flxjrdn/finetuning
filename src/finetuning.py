@@ -125,9 +125,3 @@ if __name__ == "__main__":
         embedding_model_name="jinaai/jina-embeddings-v2-base-de",
     )
     f.finetune()
-    for i in range(len(f.chunks)):
-        print(f"query: {f.queries[i]}")
-        print()
-        print(f"chunk: {f.chunks[i]}")
-        print(f"neg.:  {f.negative[i]}")
-        print()
