@@ -16,6 +16,7 @@ class Evaluator:
         self.client = Groq(
             api_key=TOKEN,
         )
+        self.queries = []
 
     def run(self):
         self.generate_questions()
@@ -26,8 +27,9 @@ class Evaluator:
             return
 
         print("creating questions for evaluation for each chunk")
-        self._generate_query_for_each_chunk()
-
+        self._generate_queries_for_each_chunk()
+        with open(self._get_path_questions_json(), "w", encoding="utf-8") as f:
+            json.dump(self.queries, f, indent=4)
 
     def _get_path_questions_json(self):
         return f"eval_questions_{len(self.chunks)}.json"
@@ -40,17 +42,27 @@ class Evaluator:
             triplet_list = json.load(f)
         self.triplets = [tuple(triplet) for triplet in triplet_list]
 
-    def _generate_query_for_each_chunk(self):
+    def _generate_queries_for_each_chunk(self):
         print(f"generating queries for {len(self.chunks)} chunks")
-        self.queries = [self._generate_query(chunk) for chunk in self.chunks]
+        queries_unformatted = [self._generate_queries(chunk) for chunk in self.chunks]
+        for i in range(len(self.chunks)):
+            query_unf = queries_unformatted[i]
+            if ("Anfrage1: " not in query_unf) or ("Anfrage2: " not in query_unf):
+                self.queries.append([])
+            else:
+                query1 = query_unf[len("Anfrage1: ") : query_unf.find("Anfrage2: ")]
+                query2 = query_unf[query_unf.find("Anfrage2: ") + len("Anfrage2: ") :]
+                query1 = query1.strip("\n")
+                query2 = query2.strip("\n")
+                self.queries.append([query1, query2])
 
-    def _generate_query(self, text):
+    def _generate_queries(self, text):
         prompt = (
             f"Erzeuge zwei möglichst unterschiedliche Anfragen in natürlicher Sprache, die ein Nutzer stellen würde, "
             f"um den folgenden TEXT zu finden. Antworte nur mit genau den zwei Anfragen ohne weitere Informationen. "
             f"Antworte in folgendem Format:"
             f"Anfrage1: ...\n"
-            f"Anfrage2: ..."
+            f"Anfrage2: ...\n"
             f"Der TEXT lautet:\n{text}"
         )
         chat_completion = self.client.chat.completions.create(
@@ -66,3 +78,9 @@ class Evaluator:
         )
 
         return chat_completion.choices[0].message.content
+
+
+if __name__ == "__main__":
+    evaluator = Evaluator("chunked_documents.json")
+    evaluator.run()
+    # print(evaluator._generate_queries("Funktionen bzw. Versicherungstätigkeiten einigten sich die Parteien darauf, dass alle \nAufgaben und Pflichten eines Verantwortlichen im datenschutzrechtlichen Sinne vom \nDienstleister zu erfüllen sind. A lle wesentlichen Details der Verarbeitung \npersonenbezogener Daten entscheidet der Dienstleister im Rahmen der im vertraglich \neingeräumten Entscheidungs- und Ermessensspielräume.\n1.4. Der Dienstleister ist nach der Aufgabenverteilung der Parteien insbesondere zuständig"))

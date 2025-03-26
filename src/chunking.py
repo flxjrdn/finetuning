@@ -26,8 +26,10 @@ class Chunker:
             for i, chunk in enumerate(chunks_for_single_doc):
                 self.chunks.append({"doc_id": doc_id, "chunk_id": i, "text": chunk})
         self.chunks = [
-            chunk for chunk in self.chunks
-            if (chunk["text"] is not None) and (len(chunk["text"]) >= MIN_CHUNK_CHARACTER_LENGTH)
+            chunk
+            for chunk in self.chunks
+            if (chunk["text"] is not None)
+            and (len(chunk["text"]) >= MIN_CHUNK_CHARACTER_LENGTH)
         ]
         with open(CHUNKS_JSON, "w", encoding="utf-8") as f:
             json.dump(self.chunks, f, indent=4, ensure_ascii=False)
