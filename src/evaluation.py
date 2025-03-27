@@ -1,86 +1,16 @@
-import json
-import os
-
 from src import utils
-from groq import Groq
-
-MODEL = "llama-3.3-70b-versatile"
-TOKEN = os.environ.get("GROQ_API_TOKEN")
-TEMPERATURE = 0.2
-MAX_COMPLETION_TOKENS = 512
+from src.query_generation_for_chunks import QueryGenerator
 
 
 class Evaluator:
     def __init__(self, path_chunked_docs: str):
         self.chunks = utils.load_chunks(path_chunked_docs)[:3]  # todo use all chunks
-        self.client = Groq(
-            api_key=TOKEN,
-        )
-        self.queries = []
+        self.query_generator = QueryGenerator(path_chunked_docs)
 
     def run(self):
-        self.generate_questions()
-
-    def generate_questions(self):
-        if os.path.exists(self._get_path_questions_json()):
-            self._load_questions_from_file()
-            return
-
-        print("creating questions for evaluation for each chunk")
-        self._generate_queries_for_each_chunk()
-        with open(self._get_path_questions_json(), "w", encoding="utf-8") as f:
-            json.dump(self.queries, f, indent=4)
-
-    def _get_path_questions_json(self):
-        return f"eval_questions_{len(self.chunks)}.json"
-
-    def _load_questions_from_file(self):
-        print(
-            f"loading previously created questions from {self._get_path_questions_json()}"
-        )
-        with open(self._get_path_questions_json(), "r", encoding="utf-8") as f:
-            triplet_list = json.load(f)
-        self.triplets = [tuple(triplet) for triplet in triplet_list]
-
-    def _generate_queries_for_each_chunk(self):
-        print(f"generating queries for {len(self.chunks)} chunks")
-        queries_unformatted = [self._generate_queries(chunk) for chunk in self.chunks]
-        for i in range(len(self.chunks)):
-            query_unf = queries_unformatted[i]
-            if ("Anfrage1: " not in query_unf) or ("Anfrage2: " not in query_unf):
-                self.queries.append([])
-            else:
-                query1 = query_unf[len("Anfrage1: ") : query_unf.find("Anfrage2: ")]
-                query2 = query_unf[query_unf.find("Anfrage2: ") + len("Anfrage2: ") :]
-                query1 = query1.strip("\n")
-                query2 = query2.strip("\n")
-                self.queries.append([query1, query2])
-
-    def _generate_queries(self, text):
-        prompt = (
-            f"Erzeuge zwei möglichst unterschiedliche Anfragen in natürlicher Sprache, die ein Nutzer stellen würde, "
-            f"um den folgenden TEXT zu finden. Antworte nur mit genau den zwei Anfragen ohne weitere Informationen. "
-            f"Antworte in folgendem Format:"
-            f"Anfrage1: ...\n"
-            f"Anfrage2: ...\n"
-            f"Der TEXT lautet:\n{text}"
-        )
-        chat_completion = self.client.chat.completions.create(
-            messages=[
-                {
-                    "role": "system",
-                    "content": prompt,
-                },
-            ],
-            model=MODEL,
-            temperature=TEMPERATURE,
-            max_completion_tokens=MAX_COMPLETION_TOKENS,
-        )
-
-        return chat_completion.choices[0].message.content
+        questions = self.query_generator.get_queries_for_eval()
 
 
 if __name__ == "__main__":
     evaluator = Evaluator("chunked_documents.json")
     evaluator.run()
-    # print(evaluator._generate_queries("Funktionen bzw. Versicherungstätigkeiten einigten sich die Parteien darauf, dass alle \nAufgaben und Pflichten eines Verantwortlichen im datenschutzrechtlichen Sinne vom \nDienstleister zu erfüllen sind. A lle wesentlichen Details der Verarbeitung \npersonenbezogener Daten entscheidet der Dienstleister im Rahmen der im vertraglich \neingeräumten Entscheidungs- und Ermessensspielräume.\n1.4. Der Dienstleister ist nach der Aufgabenverteilung der Parteien insbesondere zuständig"))

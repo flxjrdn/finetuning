@@ -2,32 +2,23 @@ import json
 import os
 from typing import List
 
-from groq import Groq
 from sentence_transformers import SentenceTransformer, util, losses, InputExample
 from torch.utils.data import DataLoader
 
 from src import utils
-
-
-MODEL = "llama-3.3-70b-versatile"
-TOKEN = os.environ.get("GROQ_API_TOKEN")
-TEMPERATURE = 0.2
-MAX_COMPLETION_TOKENS = 512
+from src.query_generation_for_chunks import QueryGenerator
 
 
 class Finetuner:
     def __init__(self, path_chunked_docs: str, embedding_model_name: str):
-        self.client = Groq(
-            api_key=TOKEN,
-        )
         self.embedding_model = SentenceTransformer(
             embedding_model_name,
             trust_remote_code=True,
         )
         self.chunks = utils.load_chunks(path_chunked_docs)[:3]  # todo use all chunks
         self._create_embeddings_of_chunks()
+        self.query_generator = QueryGenerator(path_chunked_docs)
 
-        self.queries: List[str] = []
         self.negative: List[str] = []
         self.triplets: List[tuple[str, str, str]] = []
 
@@ -36,36 +27,11 @@ class Finetuner:
         self._create_triplets_for_finetuning()
         self._finetune_with_triplets()
 
-    def _generate_query(self, text):
-        prompt = (
-            f"Erzeuge eine Anfrage in natürlicher Sprache, die ein Nutzer stellen würde, "
-            f"um den folgenden TEXT zu finden. Antworte ausschließlich mit der Anfrage ohne weitere Informationen. "
-            f"Antworte mit nur genau einer Anfrage. "
-            f"Der TEXT lautet:\n{text}"
-        )
-        chat_completion = self.client.chat.completions.create(
-            messages=[
-                {
-                    "role": "system",
-                    "content": prompt,
-                },
-            ],
-            model=MODEL,
-            temperature=TEMPERATURE,
-            max_completion_tokens=MAX_COMPLETION_TOKENS,
-        )
-
-        return chat_completion.choices[0].message.content
-
-    def _generate_query_for_each_chunk(self):
-        print(f"generating queries for {len(self.chunks)} chunks")
-        self.queries = [self._generate_query(chunk) for chunk in self.chunks]
-
-    def _find_least_matching_chunk_for_each_query(self):
+    def _find_least_matching_chunk_for_each_query(self, queries: List[str]):
         print(
             "finding least similar chunks to serve as negative examples in finetuning"
         )
-        for i, query in enumerate(self.queries):
+        for i, query in enumerate(queries):
             # Compute similarity scores
             scores = util.pytorch_cos_sim(self.embeddings[i], self.embeddings)[0]
 
@@ -79,10 +45,10 @@ class Finetuner:
             return
 
         print("creating triplets of query, positive and negative examples")
-        self._generate_query_for_each_chunk()
-        self._find_least_matching_chunk_for_each_query()
+        queries = self.query_generator.get_queries_for_finetuning()
+        self._find_least_matching_chunk_for_each_query(queries)
 
-        for i, query in enumerate(self.queries):
+        for i, query in enumerate(queries):
             anchor = query
             positive = self.chunks[i]
             negative = self.negative[i]
