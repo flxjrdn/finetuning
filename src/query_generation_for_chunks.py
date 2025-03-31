@@ -45,8 +45,7 @@ class QueryGenerator:
             f"loading previously created questions from {self._get_path_questions_json()}"
         )
         with open(self._get_path_questions_json(), "r", encoding="utf-8") as f:
-            triplet_list = json.load(f)
-        self.triplets = [tuple(triplet) for triplet in triplet_list]
+            self.queries = json.load(f)
 
     def _generate_queries_for_each_chunk(self):
         print(f"generating queries for {len(self.chunks)} chunks")
