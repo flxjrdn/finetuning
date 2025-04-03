@@ -2,6 +2,8 @@ from typing import Dict, List
 
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
 
 
 from src import utils
@@ -53,12 +55,13 @@ class Evaluator:
                 )
         for model_name in self.models.keys():
             print(
-                f"Hit@{self.k} for model {model_name}: {np.mean(self.hit_scores[model_name])}"
+                f"Hit@{self.k} for model {model_name}: {np.round(np.mean(self.hit_scores[model_name]), 2)}"
             )
             print(
-                f"MRR@{self.k} for model {model_name}: {np.mean(self.mrr_scores[model_name])}"
+                f"MRR@{self.k} for model {model_name}: {np.round(np.mean(self.mrr_scores[model_name]), 2)}"
             )
-        self._plot_mrr_comparison_of_two_models()
+        # self._plot_mrr_comparison_of_two_models()
+        self._plot_mrr_violin_of_two_models()
 
     def get_retrieval_indices(self, model_name):
         questions = self.query_generator.get_queries_for_eval()
@@ -86,47 +89,27 @@ class Evaluator:
         except ValueError:
             return 0.0
 
-    def _plot_mrr_comparison_of_two_models(self):
-        # ---- Bar chart: Overall MRR@k ----
+    def _plot_mrr_violin_of_two_models(self):
         model_name_a = list(self.models.keys())[0]
         model_name_b = list(self.models.keys())[1]
-        overall_a = np.mean(self.mrr_scores[model_name_a])
-        overall_b = np.mean(self.mrr_scores[model_name_b])
 
-        plt.figure(figsize=(6, 4))
-        plt.bar(
-            [model_name_a, model_name_b],
-            [overall_a, overall_b],
-            color=["skyblue", "lightgreen"],
+        # Create a tidy DataFrame for seaborn
+        data = pd.DataFrame(
+            {
+                "MRR": self.mrr_scores[model_name_a] + self.mrr_scores[model_name_b],
+                "Model": [model_name_a] * len(self.mrr_scores[model_name_a])
+                + [model_name_b] * len(self.mrr_scores[model_name_b]),
+            }
         )
-        plt.title(f"Overall MRR@{self.k} Comparison")
-        plt.ylabel("Mean Reciprocal Rank")
-        plt.ylim(0, 1)
-        plt.grid(True, axis="y", linestyle="--", alpha=0.5)
-        plt.show()
 
-        # ---- Line chart: Per-question MRR@k (optional) ----
-        plt.figure(figsize=(10, 4))
-        plt.plot(
-            self.mrr_scores[model_name_a],
-            label=model_name_a,
-            marker="o",
-            linestyle="-",
-            alpha=0.7,
+        # Plot
+        plt.figure(figsize=(6, 5))
+        sns.violinplot(
+            data=data, x="Model", y="MRR", inner="box", cut=0, palette="pastel"
         )
-        plt.plot(
-            self.mrr_scores[model_name_b],
-            label=model_name_b,
-            marker="s",
-            linestyle="-",
-            alpha=0.7,
-        )
-        plt.title(f"Per-Question MRR@{self.k}")
-        plt.xlabel("Question Index")
-        plt.ylabel("Reciprocal Rank")
+        plt.title(f"MRR@{self.k} Distribution per Model")
         plt.ylim(0, 1.05)
-        plt.grid(True, linestyle="--", alpha=0.5)
-        plt.legend()
+        plt.grid(axis="y", linestyle="--", alpha=0.4)
         plt.tight_layout()
         plt.show()
 
