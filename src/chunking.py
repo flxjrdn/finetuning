@@ -1,4 +1,5 @@
 import json
+import os
 from typing import List, Dict
 
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -20,6 +21,9 @@ class Chunker:
         )
 
     def create_chunks(self) -> None:
+        if os.path.exists(CHUNKS_JSON):
+            print(f"file with chunked documents {CHUNKS_JSON} already exists")
+            return
         print(f"creating chunks for docs in {self.path_doc_corpus_json}")
         for doc_id, text in self._load_corpus().items():
             chunks_for_single_doc = self.text_splitter.split_text(text)

@@ -23,6 +23,7 @@ class Embedder:
 
     def embed_chunks(self, path_chunks_json: str):
         chunks = utils.load_chunks(path_chunks_json)
+        print("creating embeddings ...")
         self.embeddings = [self.embed(chunk) for chunk in chunks]
         print(f"created embeddings for {len(self.embeddings)} chunks")
 

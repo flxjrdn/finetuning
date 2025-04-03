@@ -12,6 +12,9 @@ class PdfReader:
         self.directory_pdfs = directory_pdfs
 
     def create_doc_corpus_json_file(self):
+        if os.path.exists(DOCUMENTS_JSON):
+            print(f"doc-corpus {DOCUMENTS_JSON} already exists")
+            return
         docs = {}
         for path_pdf in self._get_path_pdfs():
             print(f"reading {os.path.basename(path_pdf)}")
@@ -22,6 +25,7 @@ class PdfReader:
         with open(DOCUMENTS_JSON, "w", encoding="utf-8") as f:
             json.dump(docs, f, indent=4, ensure_ascii=False)
         print(f"written {len(docs)} to {DOCUMENTS_JSON}")
+
 
     def _get_path_pdfs(self) -> List[str]:
         """
