@@ -26,7 +26,6 @@ class PdfReader:
             json.dump(docs, f, indent=4, ensure_ascii=False)
         print(f"written {len(docs)} to {DOCUMENTS_JSON}")
 
-
     def _get_path_pdfs(self) -> List[str]:
         """
         Returns a list of full paths to all PDF files in the specified directory.

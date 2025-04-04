@@ -99,6 +99,7 @@ class Finetuner:
         print(f"saving model {FINETUNED_MODEL_NAME}")
         self.embedding_model.save(FINETUNED_MODEL_NAME)
 
+
 if __name__ == "__main__":
     f = Finetuner(
         path_chunked_docs="chunked_documents.json",
