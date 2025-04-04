@@ -9,13 +9,16 @@ from src import utils
 from src.query_generation_for_chunks import QueryGenerator
 
 
+FINETUNED_MODEL_NAME = "my_finetuned_model"
+
+
 class Finetuner:
     def __init__(self, path_chunked_docs: str, embedding_model_name: str):
         self.embedding_model = SentenceTransformer(
             embedding_model_name,
             trust_remote_code=True,
         )
-        self.chunks = utils.load_chunks(path_chunked_docs)[:3]  # todo use all chunks
+        self.chunks = utils.load_chunks(path_chunked_docs)
         self._create_embeddings_of_chunks()
         self.query_generator = QueryGenerator(path_chunked_docs)
 
@@ -23,9 +26,13 @@ class Finetuner:
         self.triplets: List[tuple[str, str, str]] = []
 
     def finetune(self):
+        if os.path.isdir(FINETUNED_MODEL_NAME):
+            print(f"finetuned model already exists {FINETUNED_MODEL_NAME}")
+            return
         print("starting to finetune embedding model...")
         self._create_triplets_for_finetuning()
         self._finetune_with_triplets()
+        self._save_model()
 
     def _find_least_matching_chunk_for_each_query(self, queries: List[str]):
         print(
@@ -71,6 +78,7 @@ class Finetuner:
         self.embedding_model.fit(
             train_objectives=[(train_dataloader, train_loss)], epochs=3
         )
+        print("finetuning finished")
 
     def _get_path_triplets_json(self):
         # use number of chunks because this is known before triplets are created
@@ -84,6 +92,12 @@ class Finetuner:
             triplet_list = json.load(f)
         self.triplets = [tuple(triplet) for triplet in triplet_list]
 
+    def _save_model(self):
+        if os.path.isdir(FINETUNED_MODEL_NAME):
+            print(f"there is already a model saved under {FINETUNED_MODEL_NAME}")
+            return
+        print(f"saving model {FINETUNED_MODEL_NAME}")
+        self.embedding_model.save(FINETUNED_MODEL_NAME)
 
 if __name__ == "__main__":
     f = Finetuner(

@@ -7,6 +7,7 @@ import pandas as pd
 
 
 from src import utils
+from src.finetuning import FINETUNED_MODEL_NAME
 from src.query_generation_for_chunks import QueryGenerator
 from sentence_transformers import SentenceTransformer
 import faiss
@@ -17,7 +18,7 @@ class Evaluator:
         self, path_chunked_docs: str, models: Dict[str, SentenceTransformer], k: int = 5
     ):
         self.k = k
-        self.chunks = utils.load_chunks(path_chunked_docs)[:3]  # todo use all chunks
+        self.chunks = utils.load_chunks(path_chunked_docs)
         self.query_generator = QueryGenerator(path_chunked_docs)
         self.models = models
         self.retrieval_indices = {}
@@ -123,7 +124,7 @@ if __name__ == "__main__":
                 trust_remote_code=True,
             ),
             "model_2": SentenceTransformer(
-                "jinaai/jina-embeddings-v2-base-de",
+                FINETUNED_MODEL_NAME,
                 trust_remote_code=True,
             ),
         },

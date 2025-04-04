@@ -13,7 +13,7 @@ MAX_COMPLETION_TOKENS = 512
 
 class QueryGenerator:
     def __init__(self, path_chunked_docs: str):
-        self.chunks = utils.load_chunks(path_chunked_docs)[:3]  # todo use all chunks
+        self.chunks = utils.load_chunks(path_chunked_docs)
         self.client = Groq(
             api_key=TOKEN,
         )
