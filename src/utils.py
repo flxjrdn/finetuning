@@ -1,3 +1,4 @@
+import hashlib
 import json
 from typing import List
 
@@ -12,3 +13,7 @@ def load_chunks(path_chunks_json) -> List[str]:
     with open(path_chunks_json, "r") as f:
         chunks_dict = json.load(f)
     return [chunk["text"] for chunk in chunks_dict]
+
+
+def get_hash_for(text: str) -> str:
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()

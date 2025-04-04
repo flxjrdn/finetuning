@@ -5,14 +5,21 @@ from typing import List
 from src import utils
 from groq import Groq
 
+from src.utils import get_hash_for
+
 MODEL = "llama-3.3-70b-versatile"
 TOKEN = os.environ.get("GROQ_API_TOKEN")
 TEMPERATURE = 0.2
 MAX_COMPLETION_TOKENS = 512
 
 
+_FOLDER_INDIVIDUAL_QUERIES = "queries"
+
+
 class QueryGenerator:
     def __init__(self, path_chunked_docs: str):
+        if not os.path.isdir(_FOLDER_INDIVIDUAL_QUERIES):
+            os.makedirs(_FOLDER_INDIVIDUAL_QUERIES, exist_ok=True)
         self.chunks = utils.load_chunks(path_chunked_docs)
         self.client = Groq(
             api_key=TOKEN,
@@ -32,7 +39,7 @@ class QueryGenerator:
             self._load_questions_from_file()
             return
 
-        print("creating questions for evaluation for each chunk")
+        print("creating questions for evaluation and finetuning for each chunk")
         self._generate_queries_for_each_chunk()
         with open(self._get_path_questions_json(), "w", encoding="utf-8") as f:
             json.dump(self.queries, f, indent=4)
@@ -64,6 +71,9 @@ class QueryGenerator:
                 self.queries.append([query1, query2])
 
     def _generate_queries_unformatted(self, text):
+        if os.path.exists(self._get_path_queries_for(text)):
+            with open(self._get_path_queries_for(text), "r") as f:
+                return f.read()
         prompt = (
             f"Erzeuge zwei möglichst unterschiedliche Anfragen in natürlicher Sprache, die ein Nutzer stellen würde, "
             f"um den folgenden TEXT zu finden. Antworte nur mit genau den zwei Anfragen ohne weitere Informationen. "
@@ -83,10 +93,16 @@ class QueryGenerator:
             temperature=TEMPERATURE,
             max_completion_tokens=MAX_COMPLETION_TOKENS,
         )
+        result = chat_completion.choices[0].message.content
+        with open(self._get_path_queries_for(text), "w") as f:
+            f.write(result)
+        return result
 
-        return chat_completion.choices[0].message.content
+    @staticmethod
+    def _get_path_queries_for(text: str) -> str:
+        return os.path.join(_FOLDER_INDIVIDUAL_QUERIES, get_hash_for(text) + ".txt")
 
 
 if __name__ == "__main__":
     qg = QueryGenerator("chunked_documents.json")
-    qg.run()
+    qg.get_queries_for_finetuning()
